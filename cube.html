@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Device Orientation and Motion Example</title>
+  <style>
+    #cube {
+      width: 200px;
+      height: 200px;
+      background-color: #ccc;
+      position: relative;
+      transform-style: preserve-3d;
+      transform-origin: center center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Device Orientation and Motion Example</h1>
+  <div id="cube"></div>
+
+  <script>
+    const cube = document.getElementById('cube');
+
+    function handleOrientation(event) {
+      const { alpha, beta, gamma } = event;
+      cube.style.transform = `rotateZ(${alpha}deg) rotateX(${beta}deg) rotateY(${gamma}deg)`;
+    }
+
+    function handleMotion(event) {
+      const { acceleration } = event;
+      console.log(`acceleration: ${acceleration.x}, ${acceleration.y}, ${acceleration.z}`);
+    }
+
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      // iOS 13+ support
+      DeviceOrientationEvent.requestPermission()
+        .then(permissionState => {
+          if (permissionState === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation);
+            window.addEventListener('devicemotion', handleMotion);
+          }
+        })
+        .catch(console.error);
+    } else {
+      // Non iOS 13+ support
+      window.addEventListener('deviceorientation', handleOrientation);
+      window.addEventListener('devicemotion', handleMotion);
+    }
+  </script>
+</body>
+</html>
