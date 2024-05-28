@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accelerometer Test</title>
+</head>
+<body>
+  <div id="status"></div>
+  <script>
+    if ('Accelerometer' in window) {
+      try {
+        const sensor = new Accelerometer({ frequency: 60 });
+        sensor.addEventListener('reading', () => {
+          document.getElementById('status').innerText = `Accelerometer data: x=${sensor.x}, y=${sensor.y}, z=${sensor.z}`;
+        });
+        sensor.addEventListener('error', event => {
+          console.error(event.error.name, event.error.message);
+          document.getElementById('status').innerText = `${event.error.name}: ${event.error.message}`;
+        });
+        sensor.start();
+      } catch (error) {
+        console.error('Accelerometer not supported', error);
+        document.getElementById('status').innerText = 'Accelerometer not supported';
+      }
+    } else {
+      document.getElementById('status').innerText = 'Accelerometer not supported';
+    }
+  </script>
+</body>
+</html>
