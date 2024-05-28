@@ -3,28 +3,96 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Accelerometer Test</title>
+  <title>Device Motion</title>
+  <style>
+    body {
+      background: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    #report_box {
+      margin-bottom: 20px;
+    }
+    #ball {
+      position: absolute;
+      border-radius: 100%;
+      outline: #fff dashed 20px;
+      background: radial-gradient(circle, #fff7a7, #ffd100);
+      width: 150px;
+      height: 150px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      transition: left 0.2s linear, top 0.2s linear, transform 0.2s linear;
+    }
+  </style>
 </head>
 <body>
-  <div id="status"></div>
+  <div id="report_box"></div>
+  <div id="ball"></div>
   <script>
-    if ('Accelerometer' in window) {
+    if ('Gyroscope' in window && 'Accelerometer' in window) {
       try {
-        const sensor = new Accelerometer({ frequency: 60 });
-        sensor.addEventListener('reading', () => {
-          document.getElementById('status').innerText = `Accelerometer data: x=${sensor.x}, y=${sensor.y}, z=${sensor.z}`;
+        const gyro = new Gyroscope({ frequency: 60 });
+        const accel = new Accelerometer({ frequency: 60 });
+        const reportBox = document.getElementById("report_box");
+        const ball = document.getElementById("ball");
+
+        gyro.addEventListener('reading', () => {
+          const x = gyro.x.toFixed(2);
+          const y = gyro.y.toFixed(2);
+          const z = gyro.z.toFixed(2);
+          updateReport('Gyroscope', x, y, z);
+          updateBall(x, y, z);
         });
-        sensor.addEventListener('error', event => {
+
+        accel.addEventListener('reading', () => {
+          const x = accel.x.toFixed(2);
+          const y = accel.y.toFixed(2);
+          const z = accel.z.toFixed(2);
+          updateReport('Accelerometer', x, y, z);
+        });
+
+        gyro.addEventListener('error', errorHandler);
+        accel.addEventListener('error', errorHandler);
+
+        gyro.start();
+        accel.start();
+
+        function updateReport(sensorType, x, y, z) {
+          let report = `${sensorType} data:<br>`;
+          report += `X: ${x} <br>`;
+          report += `Y: ${y} <br>`;
+          report += `Z: ${z} <br>`;
+          reportBox.innerHTML = report;
+        }
+
+        function updateBall(x, y, z) {
+          const deltaX = x * 10; // Adjust the multiplier for sensitivity
+          const deltaY = y * 10; // Adjust the multiplier for sensitivity
+          const rotation = z * -10; // Adjust the multiplier for sensitivity
+
+          const newX = ball.offsetLeft + deltaX;
+          const newY = ball.offsetTop - deltaY;
+
+          ball.style.left = `${newX}px`;
+          ball.style.top = `${newY}px`;
+          ball.style.transform = `rotate(${rotation}deg)`;
+        }
+
+        function errorHandler(event) {
           console.error(event.error.name, event.error.message);
-          document.getElementById('status').innerText = `${event.error.name}: ${event.error.message}`;
-        });
-        sensor.start();
+          reportBox.innerHTML = `${event.error.name}: ${event.error.message}`;
+        }
       } catch (error) {
-        console.error('Accelerometer not supported', error);
-        document.getElementById('status').innerText = 'Accelerometer not supported';
+        console.error('Gyroscope or Accelerometer not supported', error);
+        document.getElementById('report_box').innerText = 'Gyroscope or Accelerometer not supported';
       }
     } else {
-      document.getElementById('status').innerText = 'Accelerometer not supported';
+      document.getElementById('report_box').innerText = 'Gyroscope or Accelerometer not supported';
     }
   </script>
 </body>
